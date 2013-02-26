@@ -1,0 +1,8 @@
+{
+   "name":"device1",
+   "id":"dev123", 
+   "type":"SNAP VPN 903i",
+    "status":"Active",
+   "location":"Germany",
+    "serial":"3345-7677-2235"    
+}

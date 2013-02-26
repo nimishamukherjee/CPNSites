@@ -1,0 +1,9 @@
+[
+   {"serial":"1234-5678-9012","name":"device1","id":"dev123", "type":"SNAP VPN 903i"},
+   {"serial":null,"name":null,"id":null, "type":"SNAP VPN 903i"},
+   {"serial":"3234-4678-7012","name":"device2","id":"dev234", "type":"SNAP VPN 903iw"},
+   {"serial":"4434-5578-9912","name":"device3","id":"dev345", "type":"SNAP VPN 204"},
+   {"serial":null,"name":null,"id":null, "type":"SNAP VPN 204"},
+   {"serial":"4564-1278-9012","name":"device4","id":"dev456", "type":"SNAP VPN 903i"},      
+   {"serial":null,"name":null,"id":null, "type":"SNAP VPN 903iw"}
+]

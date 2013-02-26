@@ -1,0 +1,150 @@
+[
+  {
+    "id":"p1",
+    "policy":"wan2lan",
+    "default":"accept",
+     "rules":[ {
+	"id":"rule1",
+	"name":"rule name",
+	"description":"Abc",
+	"action":"Port Forward",	
+	"protocol":"TCP",	
+	"source":{
+     	"range":"Any",     	
+        "ip":"xxx.xxx.xxx.xxx",
+        "subnetmask":"xxx.xxx.xxx.xxx",
+        "operator":"equal",
+		"port": { 
+			"from":"xx",
+			"to":"xx"	
+		},
+		"zone":"WAN"		
+	},
+              "destination":{
+		"range":"Any",
+                	"ip":"xxx.xxx.xxx.xxx",
+		"subnetmask":"xxx.xxx.xxx.xxx",
+		"operator":"equal",
+		"port": { "from":"xx","to":"xx"	},
+		"zone":"WAN"
+	},
+               "forwardto":{
+                                 "range":"Any",
+                                 "ip":"xxx.xxx.xxx.xxx",
+                	"subnetmask":"xxx.xxx.xxx.xxx",
+                                "operator":"equal",
+		"port": { "from":"xx","to":"xx"	},
+		"zone":"WAN"
+               },
+             "notes":"Lorem ipsum"
+         },
+         {
+	"id":"rule2",
+	"name":"rule name 2",
+	"description":"rule description 2",
+	"action":"Accept",	
+	"protocol":"ICMP",	
+	"source":{
+                	"range":"Any",
+                	"ip":"xxx.xxx.xxx.xxx",
+                 	"subnetmask":"xxx.xxx.xxx.xxx",
+                	"operator":"equal",
+		"port": { "from":"xx","to":"xx"	},
+		"zone":"WAN"
+	},
+              "destination":{
+		"range":"Any",
+                	"ip":"xxx.xxx.xxx.xxx",
+		"subnetmask":"xxx.xxx.xxx.xxx",
+		"operator":"equal",
+		"port": { "from":"xx","to":"xx"	},
+		"zone":"WAN"
+	},
+               "forwardto":{
+                                 "range":"Any",
+                                 "ip":"xxx.xxx.xxx.xxx",
+                	"subnetmask":"xxx.xxx.xxx.xxx",
+                                "operator":"equal",
+		"port": { "from":"xx","to":"xx"	},
+		"zone":"WAN"
+               },
+             "notes":"Lorem ipsum"
+         }
+
+     ]
+  },
+  { "id":"p2","policy":"vpn2lan" },
+  { "id":"p3","policy":"lan2wan" },
+  { "id":"p4","policy":"lan2vpn" },
+  { "id":"p5","policy":"lan2lan",
+  	"default":"reject",
+  	"rules":[ {
+	"id":"rule3",
+	"name":"rule name",
+	"description":"rule description",
+	"action":"Accept",
+	"protocol":"ICMP",
+	"source":{
+                	"range":"Any",
+                	"ip":"xxx.xxx.xxx.xxx",
+                 	"subnetmask":"xxx.xxx.xxx.xxx",
+                	"operator":"equal",
+		"port": { "from":"xx","to":"xx"	},
+		"zone":"WAN"
+	},
+              "destination":{
+		"range":"Any",
+                	"ip":"xxx.xxx.xxx.xxx",
+		"subnetmask":"xxx.xxx.xxx.xxx",
+		"operator":"equal",
+		"port": { "from":"xx","to":"xx"	},
+		"zone":"WAN"
+	},
+               "forwardto":{
+                                 "range":"Any",
+                                 "ip":"xxx.xxx.xxx.xxx",
+                	"subnetmask":"xxx.xxx.xxx.xxx",
+                                "operator":"equal",
+		"port": { "from":"xx","to":"xx"	},
+		"zone":"WAN"
+               },
+             "notes":"Lorem ipsum"
+         },
+         {
+	"id":"rule4",
+	"name":"rule name 2",
+	"description":"rule description 2",
+	"action":"Accept",
+	"protocol":"ICMP",
+	"source":{
+                	"range":"Any",
+                	"ip":"xxx.xxx.xxx.xxx",
+                 	"subnetmask":"xxx.xxx.xxx.xxx",
+                	"operator":"equal",
+		"port": { "from":"xx","to":"xx"	},
+		"zone":"WAN"
+	},
+              "destination":{
+		"range":"Any",
+                	"ip":"xxx.xxx.xxx.xxx",
+		"subnetmask":"xxx.xxx.xxx.xxx",
+		"operator":"equal",
+		"port": { "from":"xx","to":"xx"	},
+		"zone":"WAN"
+	},
+               "forwardto":{
+                                 "range":"Any",
+                                 "ip":"xxx.xxx.xxx.xxx",
+                	"subnetmask":"xxx.xxx.xxx.xxx",
+                                "operator":"equal",
+		"port": { "from":"xx","to":"xx"	},
+		"zone":"WAN"
+               },
+             "notes":"Lorem ipsum"
+         }
+
+     ]
+  	
+   },
+  { "id":"p6","policy":"lannatwan" }
+]

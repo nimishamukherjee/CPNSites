@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>HT MPLS Manager</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="">
+<meta name="author" content="">
+<!-- Le styles -->
+<link href="css/bootstrap.css" rel="stylesheet">
+<link href="css/bootstrap-responsive.css" rel="stylesheet">
+<link href="css/style.css" rel="stylesheet">
+<!-- Le HTML5 shim, for IE6-8 support of HTML5 elements --><!--[if lt IE 9]> <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script> <![endif]--><!-- Le fav and touch icons -->
+<link rel="shortcut icon" href="assets/ico/favicon.ico">
+<link rel="apple-touch-icon-precomposed" sizes="144x144" href="pages/ico/apple-touch-icon-144-precomposed.png">
+<link rel="apple-touch-icon-precomposed" sizes="114x114" href="pages/ico/apple-touch-icon-114-precomposed.png">
+<link rel="apple-touch-icon-precomposed" sizes="72x72" href="pages/ico/apple-touch-icon-72-precomposed.png">
+<link rel="apple-touch-icon-precomposed" href="pages/ico/apple-touch-icon-57-precomposed.png"> 
+
+</head>
+
+<body>
+<div class="navbar">
+  <div id="banner">
+    <div id="logo-bar">
+      <div id="logo" class="brand"></div>
+      <div class="span4"><h3 class="custom-color">DT SPN</h3></div>
+    </div>
+  </div>
+</div>
+<div class="container">
+	<ul class="nav nav-pills">
+  		<li class=""><a href="">Client</a></li>
+  		<li class=""><a href="">Manage</a></li>
+  		<li class=""><a href=""  class="active">Sites</a></li>
+	</ul>
+	<div class="row-fluid">
+		<div class="span2">
+			<!--Main menu on the left side-->
+			<div class="sidebar-nav hide">
+        		<ul class="nav nav-tabs nav-stacked">
+          			<li><a href="#deviceInfo" class="active">Device Information</a></li>
+          			<li><a href="#firewall">Firewall</a></li>
+					<li><a href="#network">Network</a></li>
+        		</ul>
+      		</div>
+		</div>
+		<div class="span10">
+			<!--View List of devices-->
+    		<div class="section" id="listofdevices">
+    			<h4 class="active">List of Devices</h4>
+    			Click on each device to view and modify its information, firewall rules, and network interfaces
+      			<table class="table" id="activateddevicelist">
+	       			<thead>
+	           			<tr>
+	           				<th class="span4">Device Name</th>
+	           				<th class="span2">Device Type</th>
+			        	</tr>
+          			</thead>
+        		</table>
+        		<!--Devices pending activation-->        			
+				<h4 class="active">Device pending activation</h4>
+   				Click on a device to activate it
+   				<table class="table table-striped" id="pendactivatedevlist">
+       				<thead>
+           				<tr>
+           					<th class="span4">Device Type</th>
+		        		</tr>
+         				</thead>
+       			</table>
+    		</div>
+    		<!--====ACTIVATE A DEVICE===-->
+    		<div class="section hidden" id="activateadevice">
+    			<span class="breadcrumb"><a href="">Devices Information</a> / <b class="active"> Activate a Device</b> </span>
+				<br /><br />
+    		</div>
+    		<!--====VIEW A DEVICE'S INOFRMATION===-->
+    		<div class="section hidden" id="eachDeviceInformation">
+    		</div>
+    		<!--====FIREWALL===-->
+    		<div class="section hidden" id="viewFirewall">
+    			<span class="breadcrumb"><a href="">Devices Information</a>  / <b class="active"> Firewall Rules (<span class="deviceNm"></span>)</b> </span>
+				<br /><br />
+    		</div>
+    		<!--====Network===-->
+    		<div class="section hidden" id="viewNetwork">
+    			<span class="breadcrumb"><a href="">Devices Information</a>  / <b class="active"> Network Interfaces (<span class="deviceNm"></span></b>) </span>
+				<br /><br />
+    		</div>
+		</div>
+	</div>
+</div>
+<div id="msgModal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+    <h3 id="msgyModalLabel">Feedback</h3>
+  </div>
+  <div class="msg-modal-body">
+    <p class="spacer"></p>
+  </div>
+  <div class="modal-footer">
+    <div class="waiting hide"><button class="btn" data-dismiss="modal" aria-hidden="true">OK</button></div>
+    <div class="delete hide"><button class="btn" data-dismiss="" aria-hidden="true">YES</button> | <button class="btn" data-dismiss="modal" aria-hidden="true">NO</button></div>
+  </div>
+</div>
+<footer>
+<hr>
+  <p>Copyright © 2012 ClearPath Networks, Inc. All rights reserved</p>
+  <p>U.S. Patent No. 7,783,800 and 8,078,777 | People's Republic of China Patent Number ZL 200580019475.4</p>
+</footer>
+<!-- /container --><!-- Le javascript ================================================== --><!-- Placed at the end of the document so the pages load faster -->
+<!--====LIST OF DEVICES===-->
+<script type="text/template" id="activatedDevicesTemplate">
+	<td class="span4" id="{id}"><a href="#deviceInfo">{name}</a></td>
+	<td class="span2">{type}</td>
+</script>
+<script type="text/template" id="pendingActivationTemplate">
+	<td class="span2"><a href="#activate">{type}</a></td>
+</script>
+<!--====ACTIVATE A DEVICE===-->
+<script type="text/template" id="activateAdeviceTemplate">	
+	<p><b class="active"> Activate</b><b> - {type}</b></p>
+	<form action="#" id="form" name="form">
+	<div>Device name: <input type="text" class="input-medium" name="name" value="{name}" placeholder="My Device Name"/></span></div> 
+	<div>Serial number: <input type="text" class="input-medium" name="serial" value="{serial}" placeholder="xxxxxxxxx"/></span></div>
+	<div class="hide"><input type="text" class="input-medium" name="type" value="{type}" /></div>
+	</form>
+	<div class="span6 pull-right"><button title="Cancel Rule" class="btn btn-danger cancel">Cancel</button><button title="activate" class="btn btn-primary activateDevice">Activate</button></div>
+</script>
+<!--====VIEW A DEVICE'S INFORMATION===-->
+<script type="text/template" id="deviceInfoViewTemplate">
+	<span class="breadcrumb"><a href="">Devices Information</a> / <b class="active"> Device Details ({name})</b> </span>
+	<br /><br />
+<div class="box">
+		<div class="row-fluid"><div class="span2"><b>Device Name:</b></div><div class="span2">{name}</div></div>
+		<div class="row-fluid"><div class="span2"><b>Device ID:</b></div><div class="span2">{id}</div></div>
+		<div class="row-fluid"><div class="span2"><b>Type:</b></div><div class="span2">{type}</div></div>
+		<div class="row-fluid"><div class="span2"><b>Status:</b></div><div class="span2">{status}</div></div>
+		<div class="row-fluid"><div class="span2"><b>Location:</b></div><div class="span2">{location}</div></div>
+		<div class="row-fluid"><div class="span2"><b>Serial:</b></div><div class="span2">{serial}</div></div>	
+</div>
+	<div class="span6 pull-right"><button title="Edit Device" class="btn btn-primary editDevice">Edit</button><button title="Cancel Rule" class="btn btn-danger deleteDevice">Delete</button></div>
+</script>
+<script type="text/template" id="deviceInfoEditTemplate">
+<div class="box">
+	<form action="#" id="form" name="form">
+		<div class="row-fluid"><div class="span2"><b>Device Name:</b></div><div class="span2"><input type="text" class="input-medium" name="name" value="{name}" placeholder="My Device Name"/></div></div>
+		<div class="row-fluid"><div class="span2"><b>Device ID:</b></div><div class="span2"><input type="text" class="input-medium" name="id" value="{id}" readonly="readonly"/></div></div>
+		<div class="row-fluid"><div class="span2"><b>Type:</b></div><div class="span2"><input type="text" class="input-medium" name="type" value="{type}" readonly="readonly"/></div></div>
+		<div class="row-fluid"><div class="span2"><b>Status:</b></div><div class="span2"><input type="text" class="input-medium" name="status" value="{status}" readonly="readonly"/></div></div>
+		<div class="row-fluid"><div class="span2"><b>Location:</b></div><div class="span2"><input type="text" class="input-medium" name="location" value="{location}" /></div></div>
+		<div class="row-fluid"><div class="span2"><b>Serial:</b></div><div class="span2"><input type="text" class="input-medium" name="serial" value="{serial}" /></div></div>
+	</form>
+</div>
+	<div class="span6 pull-right"><button title="Save Edits" class="btn btn-primary saveDeviceEdits">Save</button><button title="Cancel" class="btn btn-danger cancelDeviceEdits">Cancel</button></div>
+
+</script>
+<!--====FIREWALL===-->
+<script type="text/template" id="ruleViewTemplate">
+<div class="row rule">
+	<div class="span2"><b>{name}</b></div>		
+	<div class="span4"><b>{description}</b></div>
+	<div class="span2"><b>Rule : {action}</b></div>
+	<div class="span4">
+		<button title="Edit Rule" class="btn btn-primary editRule">Edit Rule</button><button title="Delete Rule" class="btn btn-danger removeRule">Delete Rule</button>
+	</div>
+</div>
+</script>
+
+<script type="text/template" id="ruleEditTemplate">
+	<form action="#" id="form" name="form">
+	<div class="row rule">
+		<div class="span8"><input type="text" class="input-large" name="name" value="{name}" placeholder="Enter rule name"/></div>
+		<div class="hidden">{#id}(<input type="text" class="input-large" name="id" value="{id}"/>){:else}{/id}</div>
+		<div class="span4"><button title="Save Rule" class="btn btn-primary saveRule">Save Rule</button><button title="Cancel Rule" class="btn btn-danger cancel">Cancel</button></div>		
+	</div>				
+	<div class="box">
+	<div class="row-fluid">
+		<div class="span4">Rule description: <input type="text" class="input-large" name="description" value="{description}" placeholder="Enter rule description"/></div>	
+		<div class="span4">Action: <select name="action" class="dropdown" id="action"><option>Accept</option>,<option>Reject</option><option>Drop</option><option>Port Forward</option><option>Service bypass</option></select></div>
+		<div class="span4 proto">Protocol: <select name="protocol" class="dropdown" id="protocol"><option>IP</option><option>RDP</option><option>Drop</option><option>RSVP</option><option>GRE</option><option>ESP</option><option>AH</option><option>L2TP</option><option>ICMP</option><option>TCP</option><option>UDP</option></select></div>
+	</div>
+	<div class="row-fluid">
+		<div class="span4 box source">
+			<div class="mainmod">
+				<b>Source</b><br />
+				<span class="range"><b>Range :</b> <select name="source[range]" class="dropdown"><option>Any</option><option>Network</option><option>Host</option></select></span><br />
+				<span class="sourceip"><b>IP :</b> <input type="text" class="input-medium" name="source[ip]" value="{source.ip}" placeholder="xxx.xxx.xxx.xxx"/></span><br />
+				<span class="sourcesubnet"><b>Subnet Mask :</b> <input type="text" class="input-medium" name="source[subnetmask]" value="{source.subnetmask}" placeholder="xxx.xxx.xxx.xxx"/><br /></span>
+				<span class="operatorset hidden"><b>Operator :</b> <select name="source[operator]" class="dropdown"><option>equal</option><option>range</option></select><br /></span>
+				<span class="operatorset hidden sourceportfrom"><b>Port :</b> <input type="number" class="input-small" name="source[port][from]" value="{source.port.from}" placeholder="xxxx"/></span>
+				<span class="operatorset hidden sourceportto"><input type="number" class="input-small" name="source[port][to]" value="{source.port.to}" placeholder="xxxx"/></span>
+			</div>
+			<div class="notes hidden">
+				<b>Enter IP Address</b><br />
+				<input type="text" class="input-medium" name="source[ip]" value="{source.ip}" placeholder="xxx.xxx.xxx.xxx"/><br />
+			</div>
+		</div>		
+		<div class="span4 box destination">
+			<div class="mainmod">
+				<b>Destination</b><br />
+				<span class="range"><b>Range :</b> <select name="destination[range]" class="dropdown"><option>Any</option><option>Network</option><option>Host</option></select></span><br />
+				<span class="destinationip"><b>IP :</b> <input type="text" class="input-medium" name="destination[ip]" value="{destination.ip}" placeholder="xxx.xxx.xxx.xxx"/></span><br />
+				<span class="destinationsubnet"><b>Subnet Mask :</b> <input type="text" class="input-medium" name="destination[subnetmask]" value="{destination.subnetmask}" placeholder="xxx.xxx.xxx.xxx"/><br /></span>
+				<span class="operatorset hidden"><b>Operator :</b> <select name="destination[operator]" class="dropdown"><option>equal</option><option>range</option></select><br /></span>
+				<span class="operatorset hidden destinationportfrom"><b>From :</b> <input type="number" class="input-small" name="destination[port][from]" value="{destination.port.from}" placeholder="xxxx"/></span>
+				<span class="operatorset hidden destinationportto"><b>To :</b> <input type="number" class="input-small" name="destination[port][to]" value="{destination.port.to}" placeholder="xxxx"/></span>
+			</div>
+			<div class="notes hidden">
+				<b>Notes</b><br />
+				<input type="text" class="input-medium" name="notes" value="{notes}" placeholder="xxx.xxx.xxx.xxx"/><br />
+			</div>
+
+		</div>		
+		<div class="span4 box misc hidden">
+			<div class="forwardto">
+				<b>Forward To</b><br />
+				<b>Range :</b> <select name="forwardto[range]"><option>Host</option></select><br />
+				<b>IP :</b> <input type="text" class="input-medium" name="forwardto[ip]" value="{forwardto.ip}" placeholder="xxx.xxx.xxx.xxx"/><br />
+			</div>
+			<div class="publicvpn">
+				<b>Public/VPN</b><br />
+				<b>Zone :</b> <select name="forwardto[zone]"><option>Public</option><option>VPN</option></select><br /></span>
+			</div>
+		</div>
+						
+	</div>
+	</form>
+</script>
+
+<script type="text/template" id="ruleNatEditTemplate">
+	<form action="#" id="form" name="form">
+	<div class="row rule">
+		<div class="span8"><input type="text" class="input-large" name="name" value="{name}" placeholder="Enter rule name"/></div>
+		<div class="hidden">{#id}(<input type="text" class="input-large" name="id" value="{id}"/>){:else}{/id}</div>
+		<div class="span4"><button title="Save Rule" class="btn btn-primary saveRule">Save Rule</button><button title="Cancel Rule" class="btn btn-danger cancel">Cancel</button></div>		
+	</div>				
+	<div class="box">
+	<div class="row-fluid">
+		<div class="span4">Rule description: <input type="text" class="input-large" name="description" value="{description}" placeholder="Enter rule description"/></div>	
+	</div>
+	<div class="row-fluid">
+		<div class="span4 box source">
+				<b>Source</b><br />
+				<b>Range :</b> <select name="source[range]" class="dropdown"><option>Host</option><option>Network</option></select><br />
+				<span class="sourceip"><b>IP :</b> <input type="text" class="input-medium" name="source[ip]" value="{source.ip}" placeholder="xxx.xxx.xxx.xxx"/><br /></span>
+				<span class="sourcesubnet"><b>Subnet Mask :</b> <input type="text" class="input-medium" name="source[subnetmask]" value="{source.subnetmask}" placeholder="xxx.xxx.xxx.xxx"/><br /></span>
+		</div>		
+		<div class="span4 box destination">
+			<b>Destination</b><br />
+			<b>Range :</b> <select name="destination[range]" class="dropdown" id="range"><option>Any</option><option>Network</option><option>Host</option></select><br />
+			<span class="destinationip"><b>IP :</b> <input type="text" class="input-medium" name="destination[ip]" value="{destination.ip}" placeholder="xxx.xxx.xxx.xxx"/><br /></span>
+			<span class="destinationsubnet"><b>Subnet Mask :</b> <input type="text" class="input-medium" name="destination[subnetmask]" value="{destination.subnetmask}" placeholder="xxx.xxx.xxx.xxx"/><br /></span>
+		</div>		
+		<div class="span4 box misc">
+			<b>Masquerade As</b><br />
+			<b>IP :</b> <input type="text" class="input-medium" name="forwardto[ip]" value="{forwardto.ip}" placeholder="xxx.xxx.xxx.xxx"/><br />
+			<b>Zone :</b> <select name="forwardto[zone]"><option>Wan</option><option>Lan</option><option>Vpn</option></select><br /></span>
+		</div>		
+	</div>
+</form>
+</script>
+<script type="text/template" id="firewallViewTemplate">
+	<div class="row-fluid underline"> 
+		<div class="span10"><b class="custom-color">Policy</b> : <b>{policy} 
+			 <span class"noforules">{@if cond="{rules.length}"} ({rules.length} rules) {/if}</span>
+		</b></div>		
+		<div class="span2 right"><button title="Add New Rule" class="btn btn-primary addRule">Add New Rule</button></div>
+	</div>
+	<div class="row-fluid default">
+		<div class="span2 padding-style-left padding-style-top"><b>Default Rule</b></div>
+		<div class="span3 padding-style-top">{#default} <b>Default rule:</b>{default} <br />{:else}{/default}</div>
+	</div>
+</script>
+ 
+<script src="js/jquery.js"></script> 
+<script src="js/underscore.js"></script>
+<script src="js/backbone.js"></script>
+<script src="js/dust-full-0.3.0.min.js"></script> 
+<script src="js/dust-helpers.js"></script>
+<script src="js/bootstrap.js"></script>
+<script src="js/backbone.syphon.js"></script>
+<script src="js/sites.js"></script>
+<script src="js/common.js"></script>
+
+</body>
+</html>
