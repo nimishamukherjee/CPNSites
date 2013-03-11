@@ -81,11 +81,13 @@
     		<div class="section hidden" id="viewFirewall">
     			<span class="breadcrumb"><a href="">Devices Information</a>  / <b class="active"> Firewall Rules (<span class="deviceNm"></span>)</b> </span>
 				<br /><br />
+				<div id="firewallrules"></div>
     		</div>
     		<!--====Network===-->
     		<div class="section hidden" id="viewNetwork">
     			<span class="breadcrumb"><a href="">Devices Information</a>  / <b class="active"> Network Interfaces (<span class="deviceNm"></span></b>) </span>
 				<br /><br />
+				<div id="networkinterfaces"></div>
     		</div>
 		</div>
 	</div>
@@ -272,14 +274,247 @@
 		<div class="span3 padding-style-top">{#default} <b>Default rule:</b>{default} <br />{:else}{/default}</div>
 	</div>
 </script>
+<!--=========N E T W O R K  I N T E R F A C E==========-->
+<script id="networkViewTemplate" type="text/template">	
+	<div class="box">
+		<div class="box">
+			<div class="row-fluid">
+				<div class="span2">{name} ({id})</div>
+				{#config}
+					<div class="span1">{#type}Type: {type}{:else}{/type}</div>
+					<div class="span1">{#ipaddress}IP: {ipaddress}{:else}{/ipaddress}</div>
+					<div class="span2">{#subnetmask}Netmask: {subnetmask}{:else}{/subnetmask}</div>
+					<div class="span2">{#gateway}Gateway: {gateway}{:else}{/gateway}</div>
+					<div class="span2">{#broadcast}Broadcast: {broadcast}{:else}{/broadcast}</div>				
+				{/config}
+				<div class="span2"><button title="Edit Rule" class="btn btn-primary editInterface">Edit Rule</button></div>
+			</div>
+		</div>
+		{?dhcp}
+		<div class="row-fluid">
+			<label class="checkbox"><input type="checkbox" readonly="readonly" {?dhcp.enabled}checked{:else}{/dhcp.enabled}><b>Enable DHCP Server</b></label>
+		</div>		
+			{?dhcp.enabled}
+			{?dhcp.ranges}
+			<div class="box">
+			{#dhcp.ranges}<div class="row-fluid">{from} - {to}</div><hr />{/dhcp.ranges}
+			</div>	
+			{/dhcp.ranges}
+   			{/dhcp.enabled}
+		{:else}
+      	<b>No DHCP Servers</b>
+		{/dhcp}
+		{?staticiproute}		
+		<b>Static IP Routes</b>
+		<div class="box">
+		{#staticiproute}
+			<div class="row-fluid">
+				<div class="span3">Network Host : {networkhost}</div>
+				<div class="span3">Subnet Mask : {subnetmask}</div>
+				<div class="span2">Gateway : {gateway}</div>
+				<div class="span2">Share VPN : <input type="checkbox" readonly="readonly" {#sharevpn}checked{:else}{/sharevpn}></div>
+			</div>	
+			<hr />					
+		{/staticiproute}
+		</div>
+		{:else}
+		<b><br />No Static IP Routes</b>
+		{/staticiproute}		
+		{?vlaninterfaces}
+		<b>VLAN Interfaces</b>		
+		{#vlaninterfaces:vlaninterfaces}
+		<div class="box">
+			<div class="box">
+				<div class="row-fluid">
+					<div class="span2">ID : {id}</div>
+					{#config}
+						<div class="span1">{#type}Type: {type}{:else}{/type}</div>
+						<div class="span1">{#ipaddress}IP: {ipaddress}{:else}{/ipaddress}</div>
+						<div class="span2">{#subnetmask}Netmask: {subnetmask}{:else}{/subnetmask}</div>
+						<div class="span2">{#gateway}Gateway: {gateway}{:else}{/gateway}</div>
+						<div class="span2">{#broadcast}Broadcast: {broadcast}{:else}{/broadcast}</div>				
+					{/config}					
+				</div>
+			</div>
+			{?dhcp}
+			<div class="row-fluid">
+				<label class="checkbox"><input type="checkbox" readonly="readonly" {#enabled}checked{:else}{/enabled}><b>Enable DHCP Server</b></label>
+			</div>
+			{#dhcp}				
+				{?enabled}
+				<div class="box">
+				{#ranges}
+					<div class="row-fluid">From : {from} - To : {to}<hr /></div>	   			
+	    		{/ranges}
+	    		</div>
+				{/enabled}				
+      		{/dhcp}
+      		{:else}
+   			<b>No DHCP Servers</b>
+			{/dhcp}			
+			{?staticiproute}
+			<b>Static IP Routes</b>
+			<div class="box">		
+				{#staticiproute}
+					<div class="row-fluid">
+						<div class="span3">Network Host : {networkhost}</div>
+						<div class="span3">Subnet Mask : {subnetmask}</div>
+						<div class="span2">Gateway : {gateway}</div>
+						<div class="span2">Share VPN : <input type="checkbox" readonly="readonly" {#sharevpn}checked{:else}{/sharevpn}></div>
+					</div>
+					<hr />		
+				{/staticiproute}
+			</div>			
+			{:else}
+			<b><br />No Static IP Routes</b>
+			{/staticiproute}	
+		</div>
+		{/vlaninterfaces}		
+		{:else}
+		<br /><b>No VLAN Interfaces</b>
+		{/vlaninterfaces}
+	</div>
+</script>
+<!--============N E T W O R K  E D I T  T E M P L A T E======================-->
+<script id="networkEditTemplate" type="text/template">	
+	<div class="box"><!--main box-->
+		<div class="box">
+			<div class="row-fluid">
+				<div class="span8">{name} ({id})</div>
+				<div class="span4">
+					<button title="Edit Rule" class="btn btn-primary cancelEditInterface">Cancel</button>
+					<button title="Save Interface" class="btn btn-primary saveEditInterface">Save Interface</button>
+				</div>
+			</div>
+		</div>
+		<form action="#" id="form" name="form" class="form">	
+		<div class="box">
+		<div class="row-fluid">
+			<b>Select configuration type:</b>
+				<label class="radio inline">
+					<input type="radio" name="config[type]" value="static" {@if cond="'{config.type}' == 'static'"}checked{/if} />Manual
+				</label>
+				<label class="radio inline">
+					<input type="radio" name="config[type]" value="dhcp" {@if cond="'{config.type}' == 'dhcp'"}checked{/if} />DHCP
+				</label>								
+					<div class="row-fluid {@if cond="'{config.type}' == 'dhcp'"}hide{/if}">
+						<div class="span3"> Host : <input type="text" class="input-medium" name="config[ipaddress]" value="{ipaddress}" placeholder="xxx.xxx.xxx.xxx"/></div>
+						<div class="span3">Subnet Mask : <input type="text" class="input-medium" name="config[subnetmask]" value="{subnetmask}" placeholder="xxx.xxx.xxx.xxx"/></div>
+						<div class="span3">Gateway : <input type="text" class="input-medium" name="config[gateway]" value="{gateway}" placeholder="xxx.xxx.xxx.xxx"/></div>
+						<div class="span2">Broadcast : <input type="text" name="config[broadcast]" value="{broadcast}" placeholder="xxx.xxx.xxx.xxx"/></div>
+					</div>
+			</div>
+			</div>
+		<!--Base DHCP-->
+		{#dhcp}
+		<div class="row-fluid">
+			<label class="span4 checkbox"><input type="checkbox" name="dhcp[enabled]" {#enabled}checked{:else}{/enabled}><b>Enable DHCP Server</b></label>
+			{#enabled}<div class="span2"><button title="Add Range" class="btn btn-primary addServerRange">Add Range</button></div>{/enabled}
+		</div>		
+		<div class="box {^enabled}hide{/enabled}">
+			{#ranges}
+	   		<div class="row-fluid">
+	   			From : <input type="text" class="input-medium" name="dhcp[ranges][{$idx}][from]" value="{from}" placeholder="xxx.xxx.xxx.xxx"/> - 
+   				To : <input type="text" class="input-medium" name="dhcp[ranges][{$idx}][to]" value="{to}" placeholder="xxx.xxx.xxx.xxx"/>
+	   			<button title="Delete Range" class="btn btn-primary deleteserverrange" id="{$idx}">Delete Range</button>	   		
+	   		</div>
+	   		<hr />
+      	{/ranges}
+		</div>		
+      	{/dhcp}   		
+		<!--Base Static ip routes-->
+		<div class="row-fluid">
+			<div class="span2"><b>Static IP Routes</b></div>
+			<div class="span2"><button title="Add Range" class="btn btn-primary addStaticIP">Add Static IP Route</button></div>
+		</div>
+		{?staticiproute}
+		<div class="box">
+		{#staticiproute}
+			<div class="row-fluid">
+				<div class="span3"> Host : <input type="text" class="input-medium" name="staticiproute[{$idx}][networkhost]" value="{networkhost}" placeholder="xxx.xxx.xxx.xxx"/></div>
+				<div class="span3">Subnet Mask : <input type="text" class="input-medium" name="staticiproute[{$idx}][subnetmask]" value="{subnetmask}" placeholder="xxx.xxx.xxx.xxx"/></div>
+				<div class="span3">Gateway : <input type="text" class="input-medium" name="staticiproute[{$idx}][gateway]" value="{gateway}" placeholder="xxx.xxx.xxx.xxx"/></div>
+				<div class="span2">Share VPN : <input type="checkbox" name="staticiproute[{$idx}][sharevpn]" {#sharevpn}checked{:else}{/sharevpn}></div>
+				<div class="span1"><button title="Delete Static IP" class="btn btn-primary deleteStaticIp" id="{$idx}">Delete IP</button></div>
+			</div>				
+			<hr />
+		{/staticiproute}
+		</div>
+		{/staticiproute}
+		<!--VLAN Interfaces-->
+		<b>VLAN Interfaces</b>   <button title="Add VLAN Interface" class="btn btn-primary addvlaninterface">Add VLAN Interface</button>
+		{?vlaninterfaces}
+		{#vlaninterfaces:vlaninterfaces}
+		<div class="box"><!--whole vlan box-->				
+			<div class="row-fluid">
+				<div class="span8">ID : <input type="text" class="input-medium" name="vlaninterfaces[{@counter operand="++" /}][id]" value="{id}" placeholder="xxx.xxx.xxx.xxx"/></div>
+				<div class="span4"><button title="Delete VLAN Interface" class="btn btn-primary delvlaninterface" id="{@counter operand="" /}">Delete VLAN Interface</button></div>
+			</div>				
+			{#config}
+			<div class="box row-fluid">
+				Select configuration type:
+				<label class="radio inline"><input type="radio" id="manual" name="vlaninterfaces[{@counter operand="" /}][type]" value="static"  {@if cond="'{type}' == 'static'"}checked{/if}>Manual</label>
+				<label class="radio inline"><input type="radio" id="dhcp" name="vlaninterfaces[{@counter operand="" /}][type]" value="dhcp" {@if cond="'{type}' == 'dhcp'"}checked{/if}>DHCP</label>					
+				<div class="static-config row-fluid {@if cond="'{type}' == 'dhcp'"}hide{/if}">								
+					<div class="span3">IP: <input type="text" class="input-medium" name="vlaninterfaces[{@counter operand="" /}][config][ipaddress]" value="{ipaddress}" placeholder="xxx.xxx.xxx.xxx"/></div>
+					<div class="span3">Netmask: <input type="text" class="input-medium" name="vlaninterfaces[{@counter operand="" /}][config][subnetmask]" value="{subnetmask}" placeholder="xxx.xxx.xxx.xxx"/></div>
+					<div class="span3">Gateway: <input type="text" class="input-medium" name="vlaninterfaces[{@counter operand="" /}][config][gateway]" value="{gateway}" placeholder="xxx.xxx.xxx.xxx"/></div>
+					<div class="span3">Broadcast: <input type="text" class="input-medium" name="vlaninterfaces[{@counter operand="" /}][config][broadcast]" value="{broadcast}" placeholder="xxx.xxx.xxx.xxx"/></div>				
+				</div>
+			</div>
+			{/config}		
+			<!--vlan dhcp-->
+			<div class="row-fluid">
+				{#dhcp}<label class="span4 checkbox"><input type="checkbox" name="vlaninterfaces[{@counter operand="" /}][dhcp][enabled]" {#enabled}checked{:else}{/enabled}><b>Enable DHCP Server</b></label>
+				{#enabled}<div class="span2"><button title="Add Range" class="btn btn-primary addVlanServeRange" id="{@counter operand="" /}">Add Range</button></div>{/enabled}
+			</div>
+			{?dhcp}				
+			{#ranges}
+			<div class="box {^enabled}hide{/enabled}">
+	   			<div class="row-fluid">
+	   				From : <input type="text" class="input-medium" name="vlaninterfaces[{@counter operand="" /}][dhcp][ranges][{$idx}][from]" value="{from}" placeholder="xxx.xxx.xxx.xxx"/> - 
+   					To : <input type="text" class="input-medium" name="vlaninterfaces[{@counter operand="" /}][dhcp][ranges][{$idx}][to]" value="{to}" placeholder="xxx.xxx.xxx.xxx"/>
+	   				<button title="Delete Range" class="btn btn-primary deleteVlanServerRange" id="{@counter operand="" /}-{$idx}">Delete Range</button>
+	   			</div>
+	   			<hr />
+	   		</div>	   				
+	      	{/ranges}
+	      	{/dhcp}
+			{/dhcp}
+			<!--vlan Static ip-->
+			<div class="row-fluid">
+				<div class="span8"><b>Static IP Routes</b></div>
+				<div class="span4"><button title="Add Static IP" class="btn btn-primary addVlanStaticIp" id="{@counter operand="" /}">Add Static IP</button></div>
+			</div>
+			{?staticiproute}
+			<div class="box">			
+			{#staticiproute}
+				<div class="row-fluid">
+					<div class="span3">Network Host : <input type="text" class="input-medium" name="vlaninterfaces[{@counter operand="" /}][staticiproute][{$idx}][networkhost]" value="{networkhost}" placeholder="xxx.xxx.xxx.xxx"/></div>
+					<div class="span3">Subnet Mask : <input type="text" class="input-medium" name="vlaninterfaces[{@counter operand="" /}][staticiproute][{$idx}][subnetmask]" value="{subnetmask}" placeholder="xxx.xxx.xxx.xxx"/></div>
+					<div class="span3">Gateway : <input type="text" class="input-medium" name="vlaninterfaces[{@counter operand="" /}][staticiproute][{$idx}][gateway]" value="{gateway}" placeholder="xxx.xxx.xxx.xxx"/></div>
+					<div class="span2">Share VPN : <input type="checkbox" name="vlaninterfaces[{@counter operand="" /}][staticiproute][{$idx}][sharevpn]" {#sharevpn}checked{:else}{/sharevpn}></div>
+					<div class="span1"><button title="Delete Static IP" class="btn btn-primary deleteVlanStaticIp" id="{@counter operand="" /}-{$idx}">Delete IP</button></div>
+				</div>
+				<hr />				
+			{/staticiproute}
+			</div>
+			{/staticiproute}							
+		</div>
+		{/vlaninterfaces}
+		{/vlaninterfaces}
+	</div><!--main box-->		
+</form>	
+</script>
  
 <script src="js/jquery.js"></script> 
 <script src="js/underscore.js"></script>
 <script src="js/backbone.js"></script>
-<script src="js/dust-full-0.3.0.min.js"></script> 
+<script src="js/dust-full-1.2.0.js"></script> 
 <script src="js/dust-helpers.js"></script>
 <script src="js/bootstrap.js"></script>
 <script src="js/backbone.syphon.js"></script>
+<script src="js/backbone.memento.min.js"></script>
 <script src="js/sites.js"></script>
 <script src="js/common.js"></script>
 

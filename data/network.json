@@ -1,0 +1,101 @@
+[
+    {
+        "name": "LAN0",
+        "id": "id12",
+        "config": 
+            {
+                "type": "dhcp",
+                "ipaddress": null,
+                "subnetmask": null,
+                "gateway": null,
+                "broadcast": null
+            },
+        "dhcp": {
+            "enabled": false,            
+            "ranges": [
+                {
+                    "from": "10.10.10.1",
+                    "to": "10.10.10.11"
+                },
+                {
+                    "from": "10.10.10.11",
+                    "to": "10.10.10.22"
+                }
+            ]
+        },
+        "staticiproute": [
+            {
+                "networkhost": "192.168.12.90",
+                "subnetmask": "255.255.255.0",
+                "gateway": "192.168.12.1",
+                "sharevpn": true
+            },
+            {
+                "networkhost": "192.168.12.91",
+                "subnetmask": "255.255.255.0",
+                "gateway": "192.168.12.2",
+                "sharevpn": false
+            }
+        ],
+        "vlaninterfaces": [
+            {
+                "id": "25",
+                "config":{
+                	"type": "dhcp",
+                	"ipaddress": null,
+                	"subnetmask": null,
+                	"gateway": null,
+                	"broadcast": null
+                },
+                "dhcp":{
+                	"enabled": true,
+                	"ranges":[
+                		{ 	"from":"10.10.10.30",
+                			"to":"10.10.10.130"
+                		},
+                		{ 	"from":"20.20.20.30",
+                			"to":"20.20.20.132"
+                		}
+                	]
+                },
+                "staticiproute": []             
+            },
+            {
+                "id": "2",
+                "config":{
+                        "type": "static",
+                        "ipaddress": "xxx.xxx.xxx.xxx",
+                        "subnetmask": "xxx.xxx.xxx.xxx",
+                        "gateway": "xxx.xxx.xxx.xxx",
+                        "broadcast": "xxx.xxx.xxx.xxx"
+                 },
+                "dhcp":{
+                	"enabled": false,
+                	"ranges":[]
+                },
+                "staticiproute": [
+                {
+	                "networkhost": "192.168.12.91",
+	                "subnetmask": "255.255.255.0",
+	                "gateway": "192.168.12.2",
+	                "sharevpn": false
+            	}
+            ] 
+           	}
+        ]
+    },
+    {
+        "name": "WAN0",
+        "id": "id",
+        "config":{
+        	"type": "dhcp"
+        },
+         "dhcp":{
+                	"enabled": false,
+                	"ranges":[]
+                },
+        "staticiproute":[],
+        "vlaninterfaces":[]
+        
+    }
+]

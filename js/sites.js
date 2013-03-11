@@ -683,7 +683,7 @@ $(document).ready(function() {
 	});
 	//define master view
     var MasterFirewallView = Backbone.View.extend({
-    	el: $("#viewFirewall"),
+    	el: $("#firewallrules"),
     	fwView: null,
 
        render: function () {
@@ -700,6 +700,313 @@ $(document).ready(function() {
             this.$el.append(this.fwView.render().el);
         }
     });
+	//=======================N E T W O R K  I N T E R F A C E====================
+	//Get the network url
+	var getNetworkUrl = Backbone.Model.extend({
+		urlRoot : "data/network.json"
+	});
+	
+	//Network Interface Model 
+	var interfaceModel = Backbone.Model.extend({
+        defaults: {
+        	'name':'',
+        	'config':[],
+        	'dhcp':{},
+        	'staticIP':[],
+        	'vlan':[]
+      	},
+      	url:"http://www.google.com",
+      	//url :function(){return "Orchestration/account/"+accountID+"/devices/"+deviceid+"/networkinterface/" + (this.get("id") == null ? "/" : "/" + this.get("id"))}
+      	parse: function(response){
+	        for(var key in this.model)
+	        {
+	            var embeddedClass = this.model[key];
+	            var embeddedData = response[key];
+	            response[key] = new embeddedClass(embeddedData, {parse:true});
+	        }
+	        return response;
+    	},
+    	initialize: function(){
+    		//use memento for cancel 
+		    var memento = new Backbone.Memento(this);
+    			_.extend(this, memento);
+  		}	
+    });
+    //Collection of interfaces
+    var InterfaceList = Backbone.Collection.extend({
+		model: interfaceModel
+	});	
+	//Define individual interface view
+	var InterfaceView = Backbone.View.extend({
+		tagName: "div",
+        className: "eachInterface",
+        template: $("#networkViewTemplate").html(),
+        currentTemplate: $("#networkViewTemplate").html(),
+        editTemplate: $("#networkEditTemplate").html(), 
+        nwTempl: "nwInterfaceTempl",     
+        complied: null,   
+        
+        events:{
+        	"click button.editInterface": "fnEditInterface",
+        	"click button.cancelEditInterface": "fnCancelEditInterface",
+        	"click button.saveEditInterface": "fnSaveEditInterface",
+        	"click button.addServerRange": "fnAddServerRange",
+        	"click button.deleteserverrange": "fnDeleteServerRange",        	
+        	"click button.addStaticIP": "fnAddStaticIp",
+        	"click button.deleteStaticIp": "fnDeleteStaticIp",
+        	"click button.addVlanServeRange": "fnAddVlanServerRange",    
+        	"click button.deleteVlanServerRange": "fnDelVlanServerRange",
+        	"click button.addVlanStaticIp": "fnAddVlanStaticIp",    
+        	"click button.deleteVlanStaticIp": "fnDelVlanStaticIp",
+        	"click button.addvlaninterface": "fnAddVlanInterface",   
+        	"click button.delvlaninterface": "fnDelVlanInterface",        	     	
+        	"click input[type=radio]": "fnSetInterfaceType",
+        	"click input[type=checkbox]": "fnSetDhcpServer"
+        },
+       
+        render: function () {
+        	vlanCtr=-1;
+            var _self = this;            
+           	var data = this.model.toJSON(); 
+            this.compiled = dust.compile(this.currentTemplate,this.nwTempl);            
+            dust.loadSource(this.compiled);
+            dust.render(this.nwTempl,data,function(err,out){
+            	_self.$el.html(out);
+            });
+            return this;
+        },
+        //Edit Main Interface
+        fnEditInterface: function(e){
+        	e.preventDefault();
+        	this.model.store();
+        	this.currentTemplate = this.editTemplate;
+        	this.render();
+        },
+        //Cancel on Main Interface
+        fnCancelEditInterface: function(e){
+        	e.preventDefault();
+        	this.model.restore();
+        	this.currentTemplate = this.template;
+        	this.render();
+        	
+        },
+        //Save on Main interface
+        fnSaveEditInterface: function(e){
+        	e.preventDefault();
+        	var data = this.cleanUpArrays(Backbone.Syphon.serialize(this));
+        	var that = this;
+			this.model.set(data);
+			this.model.save(null, {
+					success:function(){
+						alert("success")					
+					},
+					error:function(m,xhr,o){
+						alert("error")
+					}
+			});
+			this.currentTemplate = this.template;
+        	this.render();
+        },
+        //Add DHCP on Base Interface
+        fnAddServerRange: function(e){
+			e.preventDefault();
+			this.saveState();    		
+			this.model.get("dhcp").ranges.push({'from':'','to':''});			
+        	this.render();
+    	}, 
+    	//Delete DHCP on Base Interface
+    	fnDeleteServerRange: function(e){
+			e.preventDefault();
+			this.saveState();
+			var ranges = this.model.get("dhcp").ranges;
+        	var id = $(e.target).attr("id");
+        	ranges.splice(id,1);
+        	this.model.get("dhcp").ranges = ranges;     	
+        	this.render();
+    	},
+    	//Add Static IP Route on Base Interface
+    	fnAddStaticIp: function(e){
+			e.preventDefault(); 		
+			this.saveState();
+			this.model.get("staticiproute").push({'networkhost':'','subnetmask':'','gateway':'','sharevpn':false});
+			this.render()
+    	}, 
+    	//Delete Static IP on Base Interface
+    	fnDeleteStaticIp:function(e){
+			e.preventDefault();
+			this.saveState();
+			var staticips = this.model.get("staticiproute");
+        	var id = $(e.target).attr("id");
+        	//delete staticips[id];
+        	staticips.splice(id,1)     	
+        	this.model.set("staticiproute",staticips);        	
+        	this.render();        	
+    	},
+    	//Add DHCP on VLAN Interface
+    	fnAddVlanServerRange: function(e){
+			e.preventDefault();
+			this.saveState();
+			var id = parseInt($(e.target).attr("id"));
+			var vlans = this.model.get("vlaninterfaces");			
+			vlans[id].dhcp.ranges.push({'from':'','to':''});			
+        	this.render();
+    	}, 
+    	//Delete DHCP Server Range on VLAN Interface
+    	fnDelVlanServerRange: function(e){
+			e.preventDefault();
+			this.saveState();
+			var id = $(e.target).attr("id").split('-');
+			//id[0] is vlan id, id[1] is server range id
+			var vlans = this.model.get("vlaninterfaces");
+			var ranges = vlans[id[0]].dhcp.ranges
+        	ranges.splice(id[1],1);
+        	vlans[id[0]].dhcp.ranges = ranges;     	
+        	this.render();        	
+    	},
+    	//Add Static IP route on Vlan Interface
+    	fnAddVlanStaticIp: function(e){
+			e.preventDefault();
+			this.saveState();			
+			var id = parseInt($(e.target).attr("id"));
+			var vlans = this.model.get("vlaninterfaces");
+			vlans[id].staticiproute.push({'networkhost':'','subnetmask':'','gateway':'','sharevpn':false});
+        	this.render();
+    	},
+    	//Delete Staic IP on Vlan Interface
+    	fnDelVlanStaticIp: function(e){
+			e.preventDefault();
+			this.saveState();
+			var id = $(e.target).attr("id").split('-');
+			//id[0] is vlan id, id[1] is server range id
+			var vlans = this.model.get("vlaninterfaces");
+			var staticip = vlans[id[0]].staticiproute
+        	staticip.splice(id[1],1);
+        	vlans[id[0]].staticiproute = staticip;     	
+        	this.render();        	
+    	},
+    	//Add new vlan interface
+    	fnAddVlanInterface: function(e){
+    		e.preventDefault();
+        	this.saveState();    		
+			this.model.get("vlaninterfaces").push({'id':'','config':{"type": "dhcp", "ipaddress": null, "subnetmask": null,"gateway": null,"broadcast": null},'dhcp':{},'staticiproute':[]});
+        	this.render()
+    		
+    	},
+    	//Delete Vlan interface
+    	fnDelVlanInterface: function(e){
+			e.preventDefault();
+			this.saveState();
+			var id = $(e.target).attr("id")
+			//id is vlan id
+			var vlans = this.model.get("vlaninterfaces");
+			vlans.splice(id,1);     	
+        	this.render(); 
+    	},
+    	//Dhcp/static toggle
+    	fnSetInterfaceType: function(e){
+    		//e.preventDefault();
+    		this.saveState();
+    		//check if main or sub interface
+    		if($(e.target).attr('name').indexOf('vlan')>=0){
+    			var id_arr = $(e.target).attr('name').split('[');
+    			var id = parseInt(id_arr[1].replace(']',''));
+    			var vlans = this.model.get("vlaninterfaces");
+    			vlans[id].config.type = $(e.target).val();    			    			
+    		}else{
+    			this.model.get('config').type =  $(e.target).val();
+    		}    		
+    		this.render();
+    	},
+    	//Enable/disable dhcp server range
+    	fnSetDhcpServer: function(e){
+    		//Enable/disable only toggles the display and does not delete a range
+    		this.saveState();
+    		if($(e.target).attr('name').indexOf('vlan')>=0){
+    			var id_arr = $(e.target).attr('name').split('[');
+    			var id = parseInt(id_arr[1].replace(']',''));
+    			var vlans = this.model.get("vlaninterfaces");
+				if($(e.target).attr('checked')){					
+    				vlans[id].dhcp.enabled = true;
+				}else{
+					vlans[id].dhcp.enabled = false;
+				}
+    		}else{
+	   			if($(e.target).attr('checked')){
+					this.model.get('dhcp').enabled =  true;			
+				}else{
+					//hide ranges
+					this.model.get('dhcp').enabled =  false;
+				}
+    		}
+    		
+    		this.render();
+    	},
+    	
+        saveState:function(){
+        	this.model.set(this.cleanUpArrays(Backbone.Syphon.serialize(this)));
+        },
+    	   	
+    	cleanUpArrays:function(model){
+    		//Dhcp ranges
+        	var out = new Array();
+        	var ranges = model.dhcp.ranges;
+        	for(var i in ranges){
+        		out.push(ranges[i]);
+        	}
+        	model.dhcp.ranges = out;
+        	//Static IP Route   
+        	out = new Array();
+        	var iproutes = model.staticiproute;
+        	for(var j in iproutes){
+        		out.push(iproutes[j]);
+        	}
+        	model.staticiproute = out;
+        	//Vlan
+        	out = new Array();
+        	var vlans = model.vlaninterfaces
+        	for(var k in vlans){        		
+        		//clean up the dhcp
+        		var vlansdhcp = vlans[k].dhcp.ranges;
+        		var outvlan = new Array();
+        		for(var l in vlansdhcp){
+        			outvlan.push(vlansdhcp[l]);
+        		}
+        		vlans[k].dhcp.ranges = outvlan;
+        		//clean up static ip route
+        		var vlansip = vlans[k].staticiproute;
+        		var outip = new Array();
+        		for(var m in vlansip){
+        			outip.push(vlansip[m]);
+        		}
+        		vlans[k].staticiproute = outip;        		
+        		out.push(vlans[k]);
+        	}
+        	model.vlaninterfaces = out;        	
+        	return model;
+        } 
+
+	});
+	//define master network view
+    var MasterNetworkView = Backbone.View.extend({
+    	el: $("#networkinterfaces"),
+    	nwView: null,
+
+       render: function () {
+            var that = this;
+            _.each(this.collection.models, function (item) {
+                that.renderNetwork(item);
+            }, this);
+        },
+
+        renderNetwork: function (item) {
+            this.nwView = new InterfaceView({
+                model: item
+            });
+            this.$el.append(this.nwView.render().el);
+        }
+    });
+	
+	
 	
 	//=======================R O U T E R====================
     var ListOfDevRouter = Backbone.Router.extend({
@@ -741,6 +1048,7 @@ $(document).ready(function() {
 					that.eachDevInfoView = new DeviceInfoView({
      		           model: model
             		});
+            		$("#eachDeviceInformation").html("")
           			$("#eachDeviceInformation").append(that.eachDevInfoView.render().el);
 				},
 				error:function(data){
@@ -757,6 +1065,7 @@ $(document).ready(function() {
         fnGetFirewall: function () {
         	fnUpdateSectionDisplay("#viewFirewall");
         	//viewDeviceName = this.model.get('name')
+        	$("#firewallrules").html("");
         	$("#viewFirewall .deviceNm").html(viewDeviceName)
 			this.fw_router=new getFirewallUrl();
 			this.fw_router.fetch({
@@ -773,7 +1082,18 @@ $(document).ready(function() {
         //Network
         fnGetNetwork: function(){
         	fnUpdateSectionDisplay("#viewNetwork");	
-        	$("#viewNetwork .deviceNm").html(viewDeviceName)
+        	$("#networkinterfaces").html("");
+        	$("#viewNetwork .deviceNm").html(viewDeviceName);
+        	this.network_router=new getNetworkUrl();
+			this.network_router.fetch({
+				success:function(model, response){
+					networkRender.collection = new InterfaceList(response);
+					networkRender.render();	
+				},
+				error:function(data){
+					alert("Error loading json")
+				}
+			});
         }
         
            
@@ -782,4 +1102,5 @@ $(document).ready(function() {
 	Backbone.history.start();
 	listOfDevicesRender = new ListOfDevicesView();
 	firewallRender = new MasterFirewallView();
+	networkRender = new MasterNetworkView();	
 });

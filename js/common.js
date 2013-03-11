@@ -1,4 +1,5 @@
-var sitesRouter, listOfDevicesRender, firewallRender, viewDeviceName="", activateDeviceType, deviceID;
+var sitesRouter, listOfDevicesRender, firewallRender, networkRender, viewDeviceName="", activateDeviceType, deviceID;
+var vlanCtr=-1;
 function fnUpdateSectionDisplay(ref){
 	$(".section").addClass("hidden");
 	$(ref).removeClass("hidden");
@@ -45,3 +46,17 @@ $(".modal-footer button").on('click', function(){
 		break;
 	}
 })
+dust.helpers.counter = function (chunk, ctx, bodies, params) {
+  	switch(params.operand){
+  		case "++":
+  			vlanCtr++;
+  		break;
+  		case "--":
+  			vlanCtr++;
+  		break;
+  		default:
+  			vlanCtr;
+  		break;
+  	}
+    	return chunk.write(vlanCtr);
+   }
